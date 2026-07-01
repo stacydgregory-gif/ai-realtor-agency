@@ -191,6 +191,10 @@
     <h1>Listing <span>Graphic Engine</span></h1>
     <p>Listings, open houses, market updates — done in seconds.</p>
     <div id="promoBanner" style="display:none;margin-top:14px;background:linear-gradient(135deg,#C9A24B,#3D8BFF);color:#0A1733;font-weight:700;font-size:14px;padding:10px 18px;border-radius:10px;text-align:center;">🎉 Pro features are FREE for everyone through July 31, 2026 — no watermark, no paywall.</div>
+    <div id="firstTipBanner" style="display:none;margin-top:10px;background:#0F1B33;border:1px solid #2a3a5c;color:#c7d3f2;font-size:13px;padding:10px 16px;border-radius:10px;text-align:center;">
+      💡 Posting to Facebook or Instagram? Tap <b>Download</b> and upload that file directly — pasting a link can show extra text under your post.
+      <button id="dismissTip" style="margin-left:10px;background:none;border:1px solid #3a4a70;color:#9fb0d4;border-radius:6px;padding:2px 10px;font-size:12px;cursor:pointer;">Got it</button>
+    </div>
   </div>
   <div class="grid">
     <div class="panel" id="panel">
@@ -915,6 +919,20 @@ Reply with ONLY raw JSON: an array of objects each with keys "headline" and "sub
   document.getElementById('gateEmail').addEventListener('keydown', function(e){
     if(e.key==='Enter') document.getElementById('gateSubmit').click();
   });
+
+  (function tipBanner(){
+    const TIP_KEY='bge_tip_seen_v1';
+    const el=document.getElementById('firstTipBanner');
+    if(!el)return;
+    try{
+      if(!localStorage.getItem(TIP_KEY)) el.style.display='block';
+    }catch(e){ el.style.display='block'; }
+    const dismiss=document.getElementById('dismissTip');
+    if(dismiss) dismiss.addEventListener('click',()=>{
+      el.style.display='none';
+      try{localStorage.setItem(TIP_KEY,'1');}catch(e){}
+    });
+  })();
 })();
 </script>
 </body>
