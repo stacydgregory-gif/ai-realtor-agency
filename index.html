@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Listing Graphic Engine™</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600;1,700&family=DM+Sans:wght@400;500;600;700&family=Great+Vibes&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Caveat:wght@600;700&family=DM+Serif+Display&family=Nunito:wght@400;600;700&family=Oswald:wght@400;500;600&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root{--accent:#0057FF;--gold:#F7C948;--ui:#0F1B33;--soft:#9fb0cf}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Poppins',system-ui,sans-serif;background:#0B1226;color:#eaf0fb;min-height:100vh;padding:20px}
+  .wrap{max-width:1220px;margin:0 auto}
+  .head{text-align:center;margin-bottom:20px}
+  .head h1{font-family:'Poppins',sans-serif;font-weight:800;font-size:26px;letter-spacing:-.3px}
+  .head h1 span{color:var(--gold)}
+  .head p{color:var(--soft);font-size:13px;margin-top:6px}
+  .grid{display:flex;gap:24px;align-items:flex-start}
+  .panel{flex:0 0 380px;max-width:380px}
+  .stagebox{flex:1;min-width:0;align-self:flex-start}
+  @media(max-width:680px){.grid{flex-direction:column}.panel{flex:1 1 auto;max-width:100%}.stagebox{position:static !important;width:100%}}
+  .panel{background:var(--ui);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:18px;box-sizing:border-box}
+  .panel h2{font-size:12px;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin:0 0 12px}
+  .panel h2.mt{margin-top:22px}
+  .field{margin-bottom:13px}
+  .field label{display:block;font-size:12px;color:var(--soft);margin-bottom:6px;font-weight:500}
+  .field input[type=text],.field textarea{width:100%;background:#0A1530;border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:10px;padding:11px 12px;font-family:inherit;font-size:14px}
+  .field textarea{resize:vertical;min-height:70px;line-height:1.5}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--accent)}
+  .btnrow{display:flex;gap:8px}
+  .pick{flex:1;background:#0A1530;border:1px solid rgba(255,255,255,.12);color:#cfc8d6;border-radius:10px;padding:10px;font-family:inherit;font-size:13px;cursor:pointer;font-weight:600}
+  .pick.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .tpls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .swatches{display:flex;gap:8px;flex-wrap:wrap}
+  .sw{width:28px;height:28px;border-radius:7px;cursor:pointer;border:2px solid transparent}
+  .kitchips{display:flex;gap:8px;flex-wrap:wrap}
+  .kitchips .pick{flex:0 0 auto;padding:9px 14px}
+  .kitedit{background:#0A1530;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:13px;margin-top:10px}
+  .colin{width:100%;height:40px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#0A1530;cursor:pointer;padding:3px}
+  .navrow{display:flex;align-items:center;justify-content:space-between}
+  .navbtn{background:#0A1530;border:1px solid rgba(255,255,255,.14);color:#fff;border-radius:8px;padding:8px 18px;cursor:pointer;font-size:15px}
+  .starters{display:flex;flex-direction:column;gap:6px}
+  .starter{text-align:left;background:#0A1530;border:1px solid rgba(255,255,255,.1);color:#cfc8d6;border-radius:9px;padding:9px 11px;cursor:pointer;font-size:12.5px;line-height:1.35;font-family:inherit}
+  .starter:hover{border-color:var(--accent);color:#fff}
+  .topicchips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+  .tchip{background:#0A1530;border:1px solid rgba(255,255,255,.12);color:#b3acbb;border-radius:20px;padding:6px 11px;font-size:11.5px;cursor:pointer;font-family:inherit}
+  .tchip:hover{border-color:var(--accent);color:#fff}
+  .panel.simple .pro-only{display:none}
+  .card .dots{position:absolute;bottom:54px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:4}
+  .card .dots span{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.4)}
+  .card .dots span.on{background:var(--accent)}
+  .sw.active{border-color:#fff}
+  .uploadbtn{display:block;text-align:center;background:#0A1530;border:1px dashed rgba(0,87,255,.45);color:var(--soft);padding:11px;border-radius:10px;cursor:pointer;font-size:13px}
+  .uploadbtn:hover{border-color:var(--accent);color:#fff}
+  input[type=file]{display:none}
+  .mirror{background:#0A1530;border:1px solid rgba(0,87,255,.25);border-radius:12px;padding:13px;margin-top:4px}
+  .aimatch{width:100%;margin-top:9px;background:linear-gradient(135deg,#0057FF,#3D8BFF);color:#fff;border:none;border-radius:10px;padding:11px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit}
+  .aimatch:disabled{opacity:.6;cursor:default}
+  .mstatus{font-size:11px;color:#7a7385;margin-top:8px;line-height:1.5;min-height:14px}
+  .mstatus.ok{color:#5bbf7a}
+  .actions{display:flex;gap:8px;margin-top:10px}
+  .dl{flex:1;background:linear-gradient(135deg,var(--gold),#ffd76b);color:#0B1226;border:none;border-radius:12px;padding:14px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit}
+  .share{flex:1;background:linear-gradient(135deg,var(--accent),#3D8BFF);color:#fff;border:none;border-radius:12px;padding:14px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit}
+  .dl:active,.share:active{transform:translateY(1px)}
+  .subrow{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+  .saved{font-size:11px;color:#7a7385}.saved.on{color:#5bbf7a}
+  .reset{background:none;border:none;color:#7a7385;font-size:11px;cursor:pointer;text-decoration:underline;font-family:inherit}
+  .stagebox{width:100%;display:flex;justify-content:center;background:#07101F;border-radius:16px;padding:24px;overflow:hidden;position:sticky;top:20px;box-sizing:border-box}
+  .scaler{transform-origin:top center}
+
+  .card{width:1080px;height:1350px;position:relative;overflow:hidden;color:#fff;background:linear-gradient(160deg,var(--p1,#16264F),var(--p2,#0A1733))}
+  .card .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:72% center}
+  .card .ph-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#6a6370;font-size:22px}
+  .card .logo{position:absolute;max-height:var(--logoH,130px);max-width:520px;object-fit:contain;z-index:3}
+  .card .logo-tl{top:54px;left:86px}
+  .card .logo-tc{top:54px;left:50%;transform:translateX(-50%)}
+  .card .logo-tr{top:54px;right:86px}
+  .card .logo-bl{bottom:130px;left:86px}
+  .card .logo-br{bottom:130px;right:86px}
+  .card .logo-bg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:72%;max-height:66%;object-fit:contain;opacity:var(--logoBgOp,.18);z-index:0}
+  .card .shade{position:absolute;inset:0;background:#0a0807;opacity:var(--shade,0)}
+  .card em{font-style:italic;color:var(--accent)}
+  .card .tag{position:absolute;right:52px;bottom:46px;font-family:'DM Sans',sans-serif;font-size:18px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:600}
+  .card .tag::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:8px;vertical-align:middle}
+  .t-quote .scrim-q{position:absolute;inset:0;background:linear-gradient(100deg,rgba(11,8,7,.97)0%,rgba(11,8,7,.92)28%,rgba(11,8,7,.6)48%,rgba(11,8,7,.18)70%,rgba(11,8,7,0)86%),linear-gradient(0deg,rgba(11,8,7,.82)0%,rgba(11,8,7,0)42%)}
+  .t-quote .bracket{position:absolute;left:50px;top:250px;bottom:300px;width:2px;background:var(--accent)}
+  .t-quote .bracket::before{content:'';position:absolute;top:0;left:0;width:96px;height:2px;background:var(--accent)}
+  .t-quote .textcol{position:absolute;left:86px;top:218px;bottom:122px;width:600px;display:flex;flex-direction:column;justify-content:var(--textpos,flex-end)}
+  .t-quote .qmark{font-family:'Playfair Display',serif;font-weight:700;font-size:150px;line-height:.7;color:var(--accent);height:84px;position:relative}
+  .t-quote .qmark::after{content:'';position:absolute;top:40px;left:158px;width:120px;height:2px;background:var(--accent);opacity:.85}
+  .t-quote .hl{font-family:'Playfair Display',serif;font-weight:700;font-size:72px;line-height:1.07;margin-top:30px}
+  .t-quote .hrule{width:120px;height:3px;background:var(--accent);border-radius:2px;margin:30px 0 26px}
+  .t-quote .sub{font-size:27px;line-height:1.55;color:#ece7e2;max-width:450px}
+  .t-quote .sig{margin-top:34px}
+  .t-statement .frame{position:absolute;inset:54px;border:1px solid var(--accent);opacity:.35;border-radius:8px}
+  .t-statement .inner{position:absolute;left:104px;right:104px;top:140px;bottom:230px;display:flex;flex-direction:column;justify-content:center}
+  .t-statement .tick{width:60px;height:3px;background:var(--accent);margin-bottom:34px}
+  .t-statement .hl{font-family:'Playfair Display',serif;font-weight:700;font-size:80px;line-height:1.08}
+  .t-statement .hrule{width:120px;height:3px;background:var(--accent);border-radius:2px;margin:30px 0 26px}
+  .t-statement .sub{font-size:29px;line-height:1.55;color:#d9dceb;max-width:560px}
+  .t-spotlight .scrim-s{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,6,9,.82)0%,rgba(8,6,9,.25)32%,rgba(8,6,9,.25)62%,rgba(8,6,9,.92)100%)}
+  .t-spotlight .foot{position:absolute;left:86px;right:86px;top:120px;bottom:110px;display:flex;flex-direction:column;justify-content:var(--textpos,flex-end)}
+  .t-spotlight .tick{width:60px;height:3px;background:var(--accent);margin-bottom:24px}
+  .t-spotlight .sub{font-size:25px;line-height:1.5;color:#e7e2e8;max-width:560px;margin-bottom:18px}
+  .t-spotlight .hl{font-family:'Playfair Display',serif;font-weight:700;font-size:60px;line-height:1.12;margin-bottom:26px}
+  .t-split .ph{height:752px;top:0;inset:auto}
+  .t-split .ph-empty{height:752px;top:0;bottom:auto}
+  .t-split .pnl{position:absolute;left:0;right:0;top:752px;bottom:0;background:linear-gradient(160deg,var(--p1,#16264F),var(--p2,#0A1733))}
+  .t-split .divide{position:absolute;left:0;right:0;top:752px;height:5px;background:var(--accent)}
+  .t-split .inner{position:absolute;left:88px;right:88px;top:806px;bottom:80px;display:flex;flex-direction:column;justify-content:center}
+  .t-split .hl{font-family:'Playfair Display',serif;font-weight:700;font-size:52px;line-height:1.1}
+  .t-split .hrule{width:100px;height:3px;background:var(--accent);border-radius:2px;margin:20px 0 18px}
+  .t-split .sub{font-size:25px;line-height:1.5;color:#d9dceb;max-width:600px}
+  .sig .sigline{width:54px;height:2px;background:var(--accent);margin-bottom:8px}
+  .sig .signame{font-family:'Great Vibes',cursive;font-size:70px;color:var(--accent);line-height:1}
+  .sig .role{font-size:22px;letter-spacing:3px;text-transform:uppercase;color:#f3eeea;margin-top:12px;font-weight:500;line-height:1.4}
+  .t-split .sig{margin-top:24px}.t-split .signame{font-size:56px}.t-split .role{font-size:19px}
+  .t-spotlight .signame{font-size:60px}
+  .t-myth .scrim-m{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,6,9,.55)0%,rgba(8,6,9,.88)60%,rgba(8,6,9,.96)100%)}
+  .t-myth .myth-wrap{position:absolute;left:90px;right:90px;top:160px;bottom:120px;display:flex;flex-direction:column;justify-content:flex-end}
+  .t-myth .myth-tag{display:inline-block;font-size:20px;font-weight:800;letter-spacing:2px;color:#ff8a8a;background:rgba(255,80,80,.15);border:1px solid rgba(255,120,120,.4);border-radius:6px;padding:6px 14px;width:fit-content;margin-bottom:16px}
+  .t-myth .myth-hl{font-family:'Playfair Display',serif;font-weight:700;font-size:52px;line-height:1.2;color:#cfd3de;text-decoration:line-through;text-decoration-color:rgba(255,110,110,.6);text-decoration-thickness:3px;margin-bottom:38px}
+  .t-myth .fact-tag{display:inline-block;font-size:20px;font-weight:800;letter-spacing:2px;color:var(--accent);background:rgba(201,162,75,.15);border:1px solid var(--accent);border-radius:6px;padding:6px 14px;width:fit-content;margin-bottom:16px}
+  .t-myth .fact-hl{font-family:'Playfair Display',serif;font-weight:700;font-size:56px;line-height:1.2;color:#fff}
+  .t-myth .sig{margin-top:40px}
+  .t-checklist .scrim-c{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,6,9,.5)0%,rgba(8,6,9,.9)55%,rgba(8,6,9,.97)100%)}
+  .t-checklist .cl-wrap{position:absolute;left:90px;right:90px;top:150px;bottom:110px;display:flex;flex-direction:column;justify-content:flex-end}
+  .t-checklist .cl-hl{font-family:'Playfair Display',serif;font-weight:700;font-size:56px;line-height:1.15;margin-bottom:20px}
+  .t-checklist .cl-hrule{width:120px;height:3px;background:var(--accent);border-radius:2px;margin-bottom:30px}
+  .t-checklist .cl-list{display:flex;flex-direction:column;gap:16px;margin-bottom:20px}
+  .t-checklist .cl-item{display:flex;align-items:flex-start;gap:14px;font-size:27px;line-height:1.4;color:#ece7e2}
+  .t-checklist .cl-check{color:var(--accent);font-weight:800;font-size:28px;flex-shrink:0}
+  .t-checklist .sig{margin-top:10px}
+  .t-stat .scrim-st{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,6,9,.35)0%,rgba(8,6,9,.85)55%,rgba(8,6,9,.96)100%)}
+  .t-stat .stat-wrap{position:absolute;left:90px;right:90px;top:0;bottom:120px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+  .t-stat .stat-num{font-family:'Playfair Display',serif;font-weight:700;font-size:200px;line-height:1;color:var(--accent)}
+  .t-stat .stat-hrule{width:100px;height:3px;background:var(--accent);border-radius:2px;margin:34px 0}
+  .t-stat .stat-sub{font-size:30px;line-height:1.4;color:#ece7e2;max-width:700px}
+  .t-stat .sig{margin-top:40px}
+
+  /* ===== Curated font styles ===== */
+  /* classic = default (Playfair / DM Sans / Great Vibes) */
+  .card.fs-modern .hl,.card.fs-modern .qmark{font-family:'Poppins',sans-serif!important;font-weight:800!important;letter-spacing:-.5px}
+  .card.fs-modern .sub,.card.fs-modern .role{font-family:'Poppins',sans-serif!important}
+  .card.fs-modern .signame{font-family:'Poppins',sans-serif!important;font-weight:700!important;font-size:42px!important;letter-spacing:.3px}
+
+  .card.fs-editorial .hl,.card.fs-editorial .qmark{font-family:'DM Serif Display',serif!important;font-weight:400!important}
+  .card.fs-editorial .sub,.card.fs-editorial .role{font-family:'DM Sans',sans-serif!important}
+
+  .card.fs-friendly .hl,.card.fs-friendly .qmark{font-family:'Quicksand',sans-serif!important;font-weight:700!important}
+  .card.fs-friendly .sub,.card.fs-friendly .role{font-family:'Nunito',sans-serif!important}
+  .card.fs-friendly .signame{font-family:'Caveat',cursive!important;font-size:66px!important}
+
+  .card.fs-bold .hl,.card.fs-bold .qmark{font-family:'Anton',sans-serif!important;font-weight:400!important;letter-spacing:.5px}
+  .card.fs-bold .sub,.card.fs-bold .role{font-family:'Oswald',sans-serif!important}
+  .card.fs-bold .signame{font-family:'Bebas Neue',sans-serif!important;font-size:54px!important;letter-spacing:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div style="font-size:11px;letter-spacing:3px;color:var(--accent);font-weight:700;text-transform:uppercase;margin-bottom:4px">The AI Realtor Agency™</div>
+    <h1>Listing <span>Graphic Engine</span></h1>
+    <p>Listings, open houses, market updates — done in seconds.</p>
+    <div id="promoBanner" style="display:none;margin-top:14px;background:linear-gradient(135deg,#C9A24B,#3D8BFF);color:#0A1733;font-weight:700;font-size:14px;padding:10px 18px;border-radius:10px;text-align:center;">🎉 Pro features are FREE for everyone through July 31, 2026 — no watermark, no paywall.</div>
+  </div>
+  <div class="grid">
+    <div class="panel" id="panel">
+      <div class="btnrow" style="margin-bottom:14px">
+        <button class="pick" data-ui="simple">Simple</button>
+        <button class="pick" data-ui="pro">Pro</button>
+      </div>
+
+      <h2>Brand Kits</h2>
+      <div class="kitchips" id="kitChips"></div>
+      <div class="pro-only">
+      <h2 class="mt">Customize kit</h2>
+      <button class="pick" id="newKit" style="width:100%">＋ New brand kit</button>
+      <div class="kitedit" id="kitEdit">
+        <div class="field"><label>Kit name</label><input type="text" id="kitName"></div>
+        <div class="field"><label>Accent color</label><input type="color" id="kitAccent" class="colin"></div>
+        <div class="field"><label>Background — main &amp; shadow</label>
+          <div style="display:flex;gap:8px"><input type="color" id="kitP1" class="colin"><input type="color" id="kitP2" class="colin"></div>
+        </div>
+        <button class="reset" id="delKit">Delete this kit</button>
+      </div>
+
+      <h2 class="mt">Mirror a design you like</h2>
+      <div class="mirror">
+        <label class="uploadbtn" id="refLabel">⬆ Upload a design to mirror</label>
+        <input type="file" id="refFile" accept="image/*">
+        <button class="aimatch" id="aiMatch" disabled>✨ AI Match — detect layout &amp; color</button>
+        <div class="mstatus" id="mstatus">Pulls the accent color instantly. AI Match reads the layout too.</div>
+      </div>
+
+      </div>
+
+      <h2 class="mt">Design</h2>
+      <div class="tpls">
+        <button class="pick" data-tpl="quote">Quote</button>
+        <button class="pick" data-tpl="statement">Statement</button>
+        <button class="pick" data-tpl="spotlight">Spotlight</button>
+        <button class="pick" data-tpl="split">Split</button>
+        <button class="pick" data-tpl="myth">Myth vs Fact</button>
+        <button class="pick" data-tpl="checklist">Checklist</button>
+        <button class="pick" data-tpl="stat">Stat callout</button>
+      </div>
+
+      <h2 class="mt">Text position</h2>
+      <div class="btnrow">
+        <button class="pick" data-textpos="top">Top</button>
+        <button class="pick" data-textpos="middle">Middle</button>
+        <button class="pick" data-textpos="bottom">Bottom</button>
+      </div>
+
+      <h2 class="mt">Font style</h2>
+      <div class="tpls" style="grid-template-columns:repeat(3,1fr)">
+        <button class="pick" data-font="classic">Classic</button>
+        <button class="pick" data-font="modern">Modern</button>
+        <button class="pick" data-font="editorial">Editorial</button>
+        <button class="pick" data-font="friendly">Friendly</button>
+        <button class="pick" data-font="bold">Bold</button>
+      </div>
+
+      <h2 class="mt">Photo</h2>
+      <div class="field">
+        <label class="uploadbtn" id="photoLabel">⬆ Upload photo(s)</label>
+        <input type="file" id="photoFile" accept="image/*" multiple>
+      </div>
+      <div id="photoGallery" style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 2px;"></div>
+      <div class="pro-only">
+      <h2 class="mt">Photo shadow</h2>
+      <div class="field"><label>Darken photo for readability</label><input type="range" id="photoShade" min="0" max="60" value="0" style="width:100%"></div>
+
+      <h2 class="mt">Logo</h2>
+      <div class="field">
+        <label class="uploadbtn" id="logoLabel">⬆ Upload logo (PNG, transparent)</label>
+        <input type="file" id="logoFile" accept="image/*">
+      </div>
+      <div class="field"><label>Logo size</label><input type="range" id="logoSize" min="70" max="300" value="130" style="width:100%"></div>
+      <div class="field"><label>Logo position</label>
+        <div class="tpls" style="grid-template-columns:repeat(3,1fr)">
+          <button class="pick" data-pos="tl">Top L</button>
+          <button class="pick" data-pos="tc">Top C</button>
+          <button class="pick" data-pos="tr">Top R</button>
+          <button class="pick" data-pos="bl">Bot L</button>
+          <button class="pick" data-pos="br">Bot R</button>
+        </div>
+      </div>
+      <div class="field"><label>Logo as background — strength</label>
+        <div class="btnrow">
+          <button class="pick" data-logobg="soft">Subtle</button>
+          <button class="pick" data-logobg="bold">Bold</button>
+        </div>
+      </div>
+
+      <h2 class="mt">Background</h2>
+      <div class="btnrow">
+        <button class="pick" data-bg="photo">Photo</button>
+        <button class="pick" data-bg="logo">Logo</button>
+        <button class="pick" data-bg="color">Color</button>
+      </div>
+
+      </div>
+
+      <h2 class="mt">Identity</h2>
+      <div class="field"><label>Name (signature)</label><input type="text" id="agentName"></div>
+      <div class="field"><label>Role line</label><input type="text" id="role"></div>
+
+      <div class="pro-only">
+      <h2 class="mt">Format</h2>
+      <div class="btnrow">
+        <button class="pick" data-mode="single">Single post</button>
+        <button class="pick" data-mode="carousel">Carousel</button>
+      </div>
+      <div id="carouselBox" class="kitedit" style="display:none">
+        <div class="field"><label>Carousel topic</label><input type="text" id="carTopic" placeholder="e.g. staging tips before your first open house"></div>
+        <div class="topicchips" id="topicChips"></div>
+        <button class="aimatch" id="genCarousel">✨ Build my carousel (AI)</button>
+        <div class="navrow" style="margin-top:12px">
+          <button class="navbtn" id="prevSlide">◀</button>
+          <span id="slideCount">1 / 1</span>
+          <button class="navbtn" id="nextSlide">▶</button>
+        </div>
+        <div class="btnrow" style="margin-top:8px">
+          <button class="pick" id="addSlide">＋ Slide</button>
+          <button class="pick" id="removeSlide">－ Slide</button>
+        </div>
+        <button class="dl" id="downloadAll" style="margin-top:8px">⬇ Download all slides (.zip)</button>
+        <div class="mstatus" id="carStatus"></div>
+      </div>
+
+      </div>
+
+      <h2 class="mt">Starter posts</h2>
+      <div class="kitchips" id="starterCats" style="margin-bottom:8px"></div>
+      <div class="starters" id="starterList"></div>
+      <button class="aimatch" id="genPosts" style="margin-top:8px">✨ Give me more ideas (AI · Pro)</button>
+      <div class="mstatus" id="postStatus"></div>
+
+      <h2 class="mt">Content</h2>
+      <div class="field"><label>Headline — *stars* = italic accent</label><textarea id="headline"></textarea></div>
+      <div class="field"><label>Sub-line</label><textarea id="sub"></textarea></div>
+
+      <div class="pro-only">
+      <h2 class="mt">Watermark</h2>
+      <div class="btnrow">
+        <button class="pick" data-tier="free" title="Adds a small watermark to your downloads">Free · tag on</button>
+        <button class="pick" id="unlockProBtn" data-tier="paid" title="Removes the watermark — one-time $47 unlock">Upgrade — $47</button>
+      </div>
+
+      </div>
+
+      <div class="actions">
+        <button class="dl" id="download">⬇ Download</button>
+        <button class="share" id="shareBtn">⤴ Share</button>
+      </div>
+      <div class="subrow"><span class="saved" id="saved">Auto-saves your work — keep building</span><button class="reset" id="reset">Reset</button></div>
+    </div>
+
+    <div class="stagebox" id="stagebox">
+      <div class="scaler" id="scaler"><div class="card t-quote" id="card"></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $=id=>document.getElementById(id);
+  const card=$('card');
+  let state={template:'quote',accent:'#C9A24B',p1:'#16264F',p2:'#0A1733',photo:'',logo:'',logoSize:130,bg:'photo',logoPos:'tl',logoBg:'soft',shade:0,tier:'free',uiMode:'simple',starterCat:0,textPos:'bottom',fontStyle:'classic',
+    mode:'single',slideIndex:0,
+    name:'Your Name Here',role:'Your Title Here',
+    headline:'Your *experience* is the edge no one can copy.',
+    sub:"When you lead with what you know, you don't just close more — you build trust that lasts.",
+    slides:[
+      {headline:'Three money truths *most families* never hear.',sub:'Swipe →'},
+      {headline:'1. The asset the wealthy *quietly* use.',sub:'It works while you sleep — protected and predictable.'},
+      {headline:'Ready to see *yours*?',sub:'Comment READY and it\u2019s already done.'}
+    ],
+    activeKit:0,
+    kits:[
+      {name:'Navy & Gold',accent:'#C9A24B',p1:'#16264F',p2:'#0A1733'},
+      {name:'Rose',accent:'#C23A6E',p1:'#2A1320',p2:'#120A0F'},
+      {name:'Bold Black',accent:'#E0B651',p1:'#1A1A1A',p2:'#070707'},
+      {name:'Coastal',accent:'#2FA9B5',p1:'#0E2A38',p2:'#07151E'},
+      {name:'Forest',accent:'#9CC15A',p1:'#16271B',p2:'#0B160F'}
+    ]};
+  const KEY='brandgraphic:v12';
+  const STARTER_CATS=[
+    {name:'Just Listed',posts:[
+      {headline:'*Just listed* and ready for its next chapter.',sub:'Tour it before it\u2019s gone \u2014 message me for a private showing.'},
+      {headline:'New on the market: your *next* home.',sub:'Book a walkthrough this week \u2014 spots are filling fast.'},
+      {headline:'This one won\u2019t *last* long.',sub:'Great homes in this price range move quick \u2014 let\u2019s get you in first.'},
+      {headline:'Fresh listing. First look is *yours*.',sub:'Reach out today to schedule your private tour.'},
+      {headline:'Love at first *showing*.',sub:'Some homes just feel right the moment you walk in \u2014 this is one of them.'}
+    ]},
+    {name:'Open House',posts:[
+      {headline:'*Open house* this weekend \u2014 come see it in person.',sub:'No appointment needed, just stop by.'},
+      {headline:'Doors open *Saturday*.',sub:'Bring your questions, your wish list, and your favorite coffee.'},
+      {headline:'Curious about this *neighborhood*?',sub:'Come walk the home and get a feel for the block this weekend.'},
+      {headline:'One weekend. One *chance* to see it all.',sub:'Swing by the open house \u2014 I\u2019ll be there to answer everything.'}
+    ]},
+    {name:'Market Update',posts:[
+      {headline:'Here\u2019s what\u2019s really happening in the *market* right now.',sub:'A quick, honest read on prices, inventory, and timing.'},
+      {headline:'Thinking of selling? Here\u2019s your *timing* advantage.',sub:'Local market shifts favor sellers who move now \u2014 let\u2019s talk strategy.'},
+      {headline:'Buyers: this is your *window*.',sub:'Rates and inventory are shifting \u2014 here\u2019s what it means for you.'},
+      {headline:'Your home\u2019s value may have *changed* more than you think.',sub:'Curious what it\u2019s worth today? Let\u2019s run the numbers.'},
+      {headline:'The market moved. Did your *plan*?',sub:'A quick check-in could save you months of guessing.'}
+    ]},
+    {name:'Home Tips',posts:[
+      {headline:'5-minute fixes that *boost* your home\u2019s value.',sub:'Small updates, real impact \u2014 before you list or just because.'},
+      {headline:'What buyers *notice* in the first 10 seconds.',sub:'Curb appeal tricks that cost little and matter a lot.'},
+      {headline:'Staging secrets that make rooms feel *bigger*.',sub:'A few simple swaps change how buyers see the whole home.'},
+      {headline:'Before you list, do *this* first.',sub:'The one prep step most sellers skip \u2014 and regret.'}
+    ]},
+    {name:'Myth vs Fact',posts:[
+      {tpl:'myth',headline:'You need *20% down* to buy a home.',sub:'Many buyers qualify with far less \u2014 let\u2019s look at your real options.'},
+      {tpl:'myth',headline:'Spring is the *only* good time to sell.',sub:'The right pricing and prep beat the calendar every time.'},
+      {tpl:'myth',headline:'Your home is only worth what *Zillow* says.',sub:'Online estimates miss the details that actually move your price.'}
+    ]},
+    {name:'Checklist',posts:[
+      {tpl:'checklist',headline:'4 things to do before you *list*',sub:'Declutter and deep clean\nFix small repairs\nGet a pre-listing walkthrough\nSet the right price from day one'},
+      {tpl:'checklist',headline:'First-time buyer? Start *here*.',sub:'Get pre-approved first\nKnow your must-haves vs nice-to-haves\nBudget for closing costs\nFind an agent who\u2019ll fight for you'}
+    ]},
+    {name:'Stat Callout',posts:[
+      {tpl:'stat',headline:'68%',sub:'of buyers say a clean, decluttered home was the deciding factor.'},
+      {tpl:'stat',headline:'1st week',sub:'is when a new listing gets the most buyer attention \u2014 pricing it right matters most upfront.'}
+    ]}
+  ];
+  const TOPICS=['Why pricing right the first week matters most','3 staging tricks that make rooms feel bigger','What buyers really notice in the first showing','Timing the market as a seller','What to check before your first open house'];
+  const MAX_SLIDES=10;
+  let refDataURL='';
+
+  const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const fmt=t=>esc(t).replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/\n/g,'<br>');
+  const fmtLine=t=>esc(t).replace(/\*(.+?)\*/g,'<em>$1</em>');
+  const sigHTML=()=>`<div class="sig"><div class="sigline"></div><div class="signame">${esc(state.name)}</div><div class="role">${esc(state.role)}</div></div>`;
+  const photoHTML=()=>state.photo?`<img class="ph" src="${state.photo}">`:`<div class="ph-empty">Upload a photo →</div>`;
+  const bgHTML=()=>{
+    if(state.bg==='logo'&&state.logo)return `<img class="logo-bg" src="${state.logo}">`;
+    if(state.bg==='photo')return state.photo?`<img class="ph" src="${state.photo}"><div class="shade"></div>`:`<div class="ph-empty">Upload a photo →</div>`;
+    return '';
+  };
+  const badgeHTML=()=>(!state.logo||state.bg==='logo')?'':`<img class="logo logo-${state.logoPos}" src="${state.logo}">`;
+
+  const kitName=()=>(((state.kits[state.activeKit]||{}).name||'graphic').toLowerCase().replace(/[^a-z0-9]+/g,'-'))||'graphic';
+  function applyKit(i){const k=state.kits[i];if(!k)return;state.activeKit=i;state.accent=k.accent;state.p1=k.p1;state.p2=k.p2;}
+  function renderChips(){const c=$('kitChips');c.innerHTML='';state.kits.forEach((k,i)=>{const b=document.createElement('button');b.className='pick'+(i===state.activeKit?' active':'');b.textContent=k.name||('Kit '+(i+1));b.addEventListener('click',()=>{applyKit(i);syncUI();update();});c.appendChild(b);});$('delKit').style.display=state.kits.length>1?'inline-block':'none';}
+  function fillKitEditor(){const k=state.kits[state.activeKit]||state.kits[0];if(k){$('kitName').value=k.name||'';$('kitAccent').value=k.accent;$('kitP1').value=k.p1;$('kitP2').value=k.p2;}}
+  function renderKits(){renderChips();fillKitEditor();}
+
+  const plain=s=>s.replace(/\*/g,'');
+  function loadPost(p){state.mode='single';state.headline=p.headline;state.sub=p.sub;if(p.tpl)state.template=p.tpl;syncUI();update();fit();}
+  function renderStarterCats(){const c=$('starterCats');if(!c)return;c.innerHTML='';STARTER_CATS.forEach((cat,i)=>{const b=document.createElement('button');b.className='pick'+(i===state.starterCat?' active':'');b.style.cssText='flex:0 0 auto;padding:9px 14px';b.textContent=cat.name;b.addEventListener('click',()=>{state.starterCat=i;renderStarterCats();renderStarters();save();});c.appendChild(b);});}
+  function renderStarters(){const c=$('starterList');if(!c)return;c.innerHTML='';const cat=STARTER_CATS[state.starterCat]||STARTER_CATS[0];cat.posts.forEach(p=>{const b=document.createElement('button');b.className='starter';b.textContent=plain(p.headline);b.addEventListener('click',()=>loadPost(p));c.appendChild(b);});}
+  function renderTopics(){const c=$('topicChips');if(!c)return;c.innerHTML='';TOPICS.forEach(t=>{const b=document.createElement('button');b.className='tchip';b.textContent=t;b.addEventListener('click',()=>{$('carTopic').value=t;});c.appendChild(b);});}
+
+  function buildCard(){
+    const ch=state.mode==='carousel'?(state.slides[state.slideIndex]||{headline:'',sub:''}):{headline:state.headline,sub:state.sub};
+    const H=fmt(ch.headline), S=fmt(ch.sub);
+    let h='';
+    if(state.template==='quote'){ h=`${bgHTML()}<div class="scrim-q"></div><div class="bracket"></div><div class="textcol"><div class="qmark">&ldquo;</div><div class="hl">${H}</div><div class="hrule"></div><div class="sub">${S}</div>${sigHTML()}</div>`; }
+    else if(state.template==='statement'){ h=`${bgHTML()}<div class="frame"></div><div class="inner"><div class="tick"></div><div class="hl">${H}</div><div class="hrule"></div><div class="sub">${S}</div></div><div style="position:absolute;left:104px;bottom:96px;right:104px">${sigHTML()}</div>`; }
+    else if(state.template==='spotlight'){ h=`${bgHTML()}<div class="scrim-s"></div><div class="foot"><div class="tick"></div><div class="sub">${S}</div><div class="hl">${H}</div>${sigHTML()}</div>`; }
+    else if(state.template==='myth'){ h=`${bgHTML()}<div class="scrim-m"></div><div class="myth-wrap"><div class="myth-tag">MYTH</div><div class="myth-hl">${H}</div><div class="fact-tag">✓ FACT</div><div class="fact-hl">${S}</div>${sigHTML()}</div>`; }
+    else if(state.template==='checklist'){ const items=(ch.sub||'').split('\n').filter(l=>l.trim()).map(l=>`<div class="cl-item"><span class="cl-check">✓</span><span class="cl-text">${fmtLine(l)}</span></div>`).join(''); h=`${bgHTML()}<div class="scrim-c"></div><div class="cl-wrap"><div class="cl-hl">${H}</div><div class="cl-hrule"></div><div class="cl-list">${items}</div>${sigHTML()}</div>`; }
+    else if(state.template==='stat'){ h=`${bgHTML()}<div class="scrim-st"></div><div class="stat-wrap"><div class="stat-num">${H}</div><div class="stat-hrule"></div><div class="stat-sub">${S}</div>${sigHTML()}</div>`; }
+    else { h=`${bgHTML()}<div class="pnl"></div><div class="divide"></div><div class="inner"><div class="hl">${H}</div><div class="hrule"></div><div class="sub">${S}</div>${sigHTML()}</div>`; }
+    card.className='card t-'+state.template+' fs-'+(state.fontStyle||'classic');
+    card.style.setProperty('--accent',state.accent);
+    card.style.setProperty('--p1',state.p1);card.style.setProperty('--p2',state.p2);
+    card.style.setProperty('--logoH',(state.logoSize||130)+'px');
+    card.style.setProperty('--logoBgOp',state.logoBg==='bold'?'0.92':'0.18');
+    card.style.setProperty('--shade',((state.shade||0)/100));
+    card.style.setProperty('--textpos',{top:'flex-start',middle:'center',bottom:'flex-end'}[state.textPos]||'flex-end');
+    const tag=state.tier==='free'?'<div class="tag">Made with The AI Realtor Agency™</div>':'';
+    let dots='';
+    if(state.mode==='carousel'&&state.slides.length>1){dots='<div class="dots">'+state.slides.map((_,i)=>`<span class="${i===state.slideIndex?'on':''}"></span>`).join('')+'</div>';}
+    card.innerHTML=h+badgeHTML()+dots+tag;
+  }
+  function setContent(key,val){if(state.mode==='carousel'){const s=state.slides[state.slideIndex];if(s)s[key]=val;}else{state[key]=val;}update();}
+  function fillContentInputs(){const ch=state.mode==='carousel'?(state.slides[state.slideIndex]||{headline:'',sub:''}):{headline:state.headline,sub:state.sub};$('headline').value=ch.headline||'';$('sub').value=ch.sub||'';}
+  function syncUI(){
+    $('agentName').value=state.name;$('role').value=state.role;fillContentInputs();
+    renderKits();
+    document.querySelectorAll('[data-tpl]').forEach(b=>b.classList.toggle('active',b.dataset.tpl===state.template));
+    document.querySelectorAll('[data-textpos]').forEach(b=>b.classList.toggle('active',b.dataset.textpos===state.textPos));
+    document.querySelectorAll('[data-font]').forEach(b=>b.classList.toggle('active',b.dataset.font===state.fontStyle));
+    document.querySelectorAll('[data-tier]').forEach(b=>b.classList.toggle('active',b.dataset.tier===state.tier));
+    $('unlockProBtn').textContent = isPromoActive() ? '✓ Pro FREE (thru 7/31)' : (isProUnlocked() ? '✓ Pro · clean' : 'Upgrade — $47');
+    if($('promoBanner'))$('promoBanner').style.display = isPromoActive() ? 'block' : 'none';
+    $('panel').classList.toggle('simple',state.uiMode==='simple');
+    document.querySelectorAll('[data-ui]').forEach(b=>b.classList.toggle('active',b.dataset.ui===state.uiMode));
+    if(state.photo)$('photoLabel').textContent='✓ Photo set — tap to add more';
+    renderPhotoGallery();
+    if(state.logo)$('logoLabel').textContent='✓ Logo set — tap to change';
+    $('logoSize').value=state.logoSize||130;
+    document.querySelectorAll('[data-bg]').forEach(b=>b.classList.toggle('active',b.dataset.bg===state.bg));
+    document.querySelectorAll('[data-pos]').forEach(b=>b.classList.toggle('active',b.dataset.pos===state.logoPos));
+    document.querySelectorAll('[data-logobg]').forEach(b=>b.classList.toggle('active',b.dataset.logobg===state.logoBg));
+    document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===state.mode));
+    $('carouselBox').style.display=state.mode==='carousel'?'block':'none';
+    $('slideCount').textContent=(state.slideIndex+1)+' / '+state.slides.length;
+    $('photoShade').value=state.shade||0;
+  }
+  let saveT;
+  async function save(){try{await window.storage.set(KEY,JSON.stringify(state),false);
+    const s=$('saved');s.textContent='✓ Saved';s.classList.add('on');clearTimeout(saveT);
+    saveT=setTimeout(()=>{s.classList.remove('on');s.textContent='Auto-saves your work — keep building';},1400);}catch(e){}}
+  function update(){buildCard();save();}
+
+  $('agentName').addEventListener('input',e=>{state.name=e.target.value;update();});
+  $('role').addEventListener('input',e=>{state.role=e.target.value;update();});
+  $('headline').addEventListener('input',e=>{setContent('headline',e.target.value);});
+  $('sub').addEventListener('input',e=>{setContent('sub',e.target.value);});
+  $('newKit').addEventListener('click',()=>{state.kits.push({name:'New Kit',accent:state.accent,p1:state.p1,p2:state.p2});state.activeKit=state.kits.length-1;syncUI();update();});
+  $('delKit').addEventListener('click',()=>{if(state.kits.length<=1)return;state.kits.splice(state.activeKit,1);applyKit(0);syncUI();update();});
+  $('kitName').addEventListener('input',e=>{const k=state.kits[state.activeKit];if(k){k.name=e.target.value;renderChips();save();}});
+  $('kitAccent').addEventListener('input',e=>{const k=state.kits[state.activeKit];if(k){k.accent=e.target.value;state.accent=e.target.value;update();}});
+  $('kitP1').addEventListener('input',e=>{const k=state.kits[state.activeKit];if(k){k.p1=e.target.value;state.p1=e.target.value;update();}});
+  $('kitP2').addEventListener('input',e=>{const k=state.kits[state.activeKit];if(k){k.p2=e.target.value;state.p2=e.target.value;update();}});
+  document.querySelectorAll('[data-tpl]').forEach(b=>b.addEventListener('click',()=>{state.template=b.dataset.tpl;syncUI();update();fit();}));
+  document.querySelectorAll('[data-textpos]').forEach(b=>b.addEventListener('click',()=>{state.textPos=b.dataset.textpos;syncUI();update();}));
+  document.querySelectorAll('[data-font]').forEach(b=>b.addEventListener('click',()=>{state.fontStyle=b.dataset.font;syncUI();update();fit();}));
+  document.querySelectorAll('[data-tier]').forEach(b=>b.addEventListener('click',()=>{
+    if(b.dataset.tier==='paid'){
+      if(isProUnlocked()){state.tier='paid';syncUI();update();}
+      else{openProModal();}
+    } else {
+      state.tier='free';syncUI();update();
+    }
+  }));
+  document.querySelectorAll('[data-ui]').forEach(b=>b.addEventListener('click',()=>{state.uiMode=b.dataset.ui;syncUI();save();fit();}));
+
+  function downscale(img,max,q){let{width:w,height:h}=img;if(w>max||h>max){const k=max/Math.max(w,h);w*=k;h*=k;}
+    const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);return cv.toDataURL('image/jpeg',q);}
+  function downscalePNG(img,max){let{width:w,height:h}=img;if(w>max||h>max){const k=max/Math.max(w,h);w*=k;h*=k;}
+    const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);return cv.toDataURL('image/png');}
+
+  function renderPhotoGallery(){
+    const g=$('photoGallery');if(!g)return;g.innerHTML='';
+    (state.photos||[]).forEach((src,i)=>{
+      const t=document.createElement('div');
+      t.style.cssText='position:relative;width:56px;height:56px;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid '+(src===state.photo?'#C9A24B':'transparent');
+      t.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+      t.addEventListener('click',()=>{state.photo=src;renderPhotoGallery();update();});
+      const del=document.createElement('div');
+      del.textContent='×';
+      del.style.cssText='position:absolute;top:0;right:0;width:18px;height:18px;line-height:17px;text-align:center;background:rgba(10,14,28,.85);color:#eaf0ff;font-size:13px;border-radius:0 0 0 6px;';
+      del.addEventListener('click',ev=>{ev.stopPropagation();state.photos.splice(i,1);if(state.photo===src){state.photo=state.photos[0]||'';}renderPhotoGallery();update();});
+      t.appendChild(del);
+      g.appendChild(t);
+    });
+  }
+  $('photoFile').addEventListener('change',e=>{
+    const files=Array.from(e.target.files||[]);if(!files.length)return;
+    if(!Array.isArray(state.photos))state.photos=[];
+    let remaining=files.length;
+    files.forEach(f=>{
+      const r=new FileReader();
+      r.onload=ev=>{const img=new Image();img.onload=()=>{
+        const ds=downscale(img,1500,0.85);
+        if(state.photos.length>=20)state.photos.shift();
+        state.photos.push(ds);state.photo=ds;
+        $('photoLabel').textContent='✓ Photo set — tap to add more';
+        renderPhotoGallery();update();
+        remaining--;
+      };img.src=ev.target.result;};
+      r.readAsDataURL(f);
+    });
+    e.target.value='';
+  });
+  $('photoLabel').addEventListener('click',()=>$('photoFile').click());
+
+  $('logoFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+    r.onload=ev=>{const img=new Image();img.onload=()=>{state.logo=downscalePNG(img,500);$('logoLabel').textContent='✓ Logo set — tap to change';update();};img.src=ev.target.result;};r.readAsDataURL(f);});
+  $('logoLabel').addEventListener('click',()=>$('logoFile').click());
+  $('logoSize').addEventListener('input',e=>{state.logoSize=+e.target.value;update();});
+  document.querySelectorAll('[data-bg]').forEach(b=>b.addEventListener('click',()=>{state.bg=b.dataset.bg;syncUI();update();}));
+  document.querySelectorAll('[data-pos]').forEach(b=>b.addEventListener('click',()=>{state.logoPos=b.dataset.pos;syncUI();update();}));
+  document.querySelectorAll('[data-logobg]').forEach(b=>b.addEventListener('click',()=>{state.logoBg=b.dataset.logobg;syncUI();update();}));
+  document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{
+    if(b.dataset.mode==='carousel'&&state.tier!=='paid'){$('carStatus').textContent='Carousel is a paid add-on — switch Watermark to Paid to preview it.';$('carStatus').classList.add('ok');$('carouselBox').style.display='block';return;}
+    state.mode=b.dataset.mode;if(state.mode==='carousel'&&(!state.slides||!state.slides.length))state.slides=[{headline:state.headline,sub:state.sub}];syncUI();update();fit();}));
+  $('prevSlide').addEventListener('click',()=>{state.slideIndex=Math.max(0,state.slideIndex-1);syncUI();update();});
+  $('nextSlide').addEventListener('click',()=>{state.slideIndex=Math.min(state.slides.length-1,state.slideIndex+1);syncUI();update();});
+  $('addSlide').addEventListener('click',()=>{if(state.slides.length>=MAX_SLIDES){$('carStatus').textContent='Max '+MAX_SLIDES+' slides — tighter carousels get more completions.';return;}state.slides.push({headline:'New slide headline',sub:''});state.slideIndex=state.slides.length-1;$('carStatus').textContent='';syncUI();update();});
+  $('removeSlide').addEventListener('click',()=>{if(state.slides.length<=1)return;state.slides.splice(state.slideIndex,1);state.slideIndex=Math.min(state.slideIndex,state.slides.length-1);syncUI();update();});
+  $('downloadAll').addEventListener('click',downloadAll);
+  $('photoShade').addEventListener('input',e=>{state.shade=+e.target.value;update();});
+  $('genPosts').addEventListener('click',generatePosts);
+  async function generatePosts(){
+    const cat=STARTER_CATS[state.starterCat]||STARTER_CATS[0];
+    if(state.tier!=='paid'){$('postStatus').classList.add('ok');$('postStatus').textContent='Fresh AI posts are a Pro feature — switch Watermark to Paid to preview.';return;}
+    const btn=$('genPosts');const o=btn.textContent;btn.disabled=true;btn.textContent='Writing fresh posts…';$('postStatus').classList.remove('ok');$('postStatus').textContent='Generating…';
+    const rules={'Just Listed':'Exciting, inviting tone for a brand-new listing. No specific address, price, or square footage claims. Focus on curiosity and urgency to tour.','Open House':'Friendly, low-pressure invite to an open house event. No specific date/time claims (agent will edit those in). Emphasize walk-in welcome and neighborhood appeal.','Market Update':'Informed, trustworthy tone about local real estate market conditions. No specific numbers, rates, or guarantees \u2014 keep it general and conversation-starting.','Home Tips':'Helpful, practical home prep/staging/value tips for buyers or sellers. No product or brand names.'}[cat.name]||'Benefit-only. No specific numbers, prices, or guarantees.';
+    const prompt=`Write 5 fresh Instagram single-post ideas for a licensed real estate agent in the category "${cat.name}".\nRules: ${rules}\nEach idea: a punchy headline of 4 to 9 words with ONE key word wrapped in *asterisks*, plus a one-sentence benefit-only subline.\nReply with ONLY raw JSON: an array of 5 objects each with keys "headline" and "sub". No markdown, no preamble.`;
+    try{
+      const res=await fetch('https://superagent-f84b65ec.base44.app/functions/contentEngineAI',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,max_tokens:1000})});
+      const data=await res.json();
+      const txt=(data.text||'').replace(/```json|```/g,'').trim();
+      const arr=JSON.parse(txt);
+      if(Array.isArray(arr)&&arr.length){arr.forEach(p=>{if(p&&p.headline)cat.posts.push({headline:String(p.headline),sub:String(p.sub||'')});});renderStarters();$('postStatus').classList.add('ok');$('postStatus').textContent='✨ '+arr.length+' new '+cat.name+' posts added below.';}
+      else throw new Error('format');
+    }catch(e){$('postStatus').classList.remove('ok');$('postStatus').textContent='AI needs the live connection (runs once Kevin wires it). The starter posts work now.';}
+    btn.textContent=o;btn.disabled=false;
+  }
+  $('genCarousel').addEventListener('click',generateCarousel);
+  async function generateCarousel(){
+    if(state.tier!=='paid'){$('carStatus').textContent='AI carousel is a paid add-on — switch Watermark to Paid to preview.';$('carStatus').classList.add('ok');return;}
+    const topic=$('carTopic').value.trim();
+    if(!topic){$('carStatus').classList.remove('ok');$('carStatus').textContent='Type a topic first.';return;}
+    const btn=$('genCarousel');const o=btn.textContent;btn.disabled=true;btn.textContent='Writing your carousel…';$('carStatus').classList.remove('ok');$('carStatus').textContent='Generating…';
+    const prompt=`You are a social media copywriter for a licensed real estate agent. Create a 7-slide Instagram carousel about: ${topic}.
+Rules:
+- Slide 1 is a scroll-stopping hook. The last slide is a call to action ending with "Comment READY". Middle slides each make one clear, benefit-driven point.
+- Headlines: 4 to 9 words, punchy, no jargon. Wrap ONE key word per headline in *asterisks* for emphasis.
+- Sublines: one short benefit-only sentence.
+- No specific prices, addresses, square footage, interest rates, or guarantees — keep it general and evergreen so any listing/market can use it.
+Reply with ONLY raw JSON: an array of objects each with keys "headline" and "sub". No markdown, no preamble.`;
+    try{
+      const res=await fetch('https://superagent-f84b65ec.base44.app/functions/contentEngineAI',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({prompt:prompt,max_tokens:1000})});
+      const data=await res.json();
+      const txt=(data.text||'').replace(/```json|```/g,'').trim();
+      const arr=JSON.parse(txt);
+      if(Array.isArray(arr)&&arr.length){
+        state.slides=arr.slice(0,MAX_SLIDES).map(s=>({headline:String(s.headline||''),sub:String(s.sub||'')}));
+        state.slideIndex=0;$('carStatus').classList.add('ok');$('carStatus').textContent='✨ '+state.slides.length+' slides created — swipe through and tweak any line.';
+        syncUI();update();fit();
+      }else{throw new Error('format');}
+    }catch(e){$('carStatus').classList.remove('ok');$('carStatus').textContent='AI generator needs the live connection (it runs once Kevin wires it). Add slides manually for now.';}
+    btn.textContent=o;btn.disabled=false;
+  }
+  async function downloadAll(){
+    if(typeof JSZip==='undefined'){alert('Zip library not loaded — try the single Download per slide.');return;}
+    const btn=$('downloadAll');const o=btn.textContent;btn.textContent='Rendering slides…';
+    const zip=new JSZip();const keep=state.slideIndex;
+    try{
+      for(let i=0;i<state.slides.length;i++){state.slideIndex=i;buildCard();await new Promise(r=>setTimeout(r,60));
+        const c=await renderCanvas();const blob=await new Promise(res=>c.toBlob(res,'image/png'));zip.file('slide-'+(i+1)+'.png',blob);}
+      const out=await zip.generateAsync({type:'blob'});
+      const a=document.createElement('a');a.download=kitName()+'-carousel.zip';a.href=URL.createObjectURL(out);a.click();
+    }catch(e){alert('Export error: '+e.message);}
+    state.slideIndex=keep;buildCard();fit();btn.textContent=o;
+  }
+
+  // ===== MIRROR A DESIGN =====
+  function extractAccent(img){
+    const s=64,cv=document.createElement('canvas');cv.width=s;cv.height=s;
+    const ctx=cv.getContext('2d');ctx.drawImage(img,0,0,s,s);
+    const d=ctx.getImageData(0,0,s,s).data;let best=null,bs=-1;
+    for(let i=0;i<d.length;i+=4){const r=d[i],g=d[i+1],b=d[i+2];
+      const mx=Math.max(r,g,b),mn=Math.min(r,g,b);const sat=mx===0?0:(mx-mn)/mx;const lum=(mx+mn)/510;
+      if(sat>0.42&&lum>0.18&&lum<0.82){const sc=sat*(1-Math.abs(lum-0.5));if(sc>bs){bs=sc;best=[r,g,b];}}}
+    if(!best)return null;return '#'+best.map(x=>x.toString(16).padStart(2,'0')).join('');
+  }
+  $('refFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+    r.onload=ev=>{const img=new Image();img.onload=()=>{
+      refDataURL=downscale(img,1200,0.85);
+      $('refLabel').textContent='✓ Design uploaded — tap to change';
+      $('aiMatch').disabled=false;
+      const c=extractAccent(img);
+      if(c){state.accent=c;syncUI();update();
+        $('mstatus').textContent='Accent color matched ('+c+'). Hit AI Match to mirror the layout.';$('mstatus').classList.add('ok');}
+      else{$('mstatus').textContent='Uploaded. Hit AI Match to mirror the layout.';}
+    };img.src=ev.target.result;};r.readAsDataURL(f);});
+  $('refLabel').addEventListener('click',()=>$('refFile').click());
+
+  $('aiMatch').addEventListener('click',async()=>{
+    if(!refDataURL)return;const btn=$('aiMatch');btn.disabled=true;const ot=btn.textContent;btn.textContent='Analyzing…';
+    $('mstatus').classList.remove('ok');$('mstatus').textContent='Reading your design…';
+    try{
+      const media=refDataURL.substring(5,refDataURL.indexOf(';'));const b64=refDataURL.split(',')[1];
+      const prompt='Match this social graphic to the closest template. Reply ONLY with raw JSON, no markdown. Keys: accent (hex of the main brand/accent color), layout (one of: quote, statement, spotlight, split). Use "quote" if a person photo fills one side with a quote over a dark scrim; "spotlight" if a photo fills the whole frame with text at the bottom; "split" if a photo is on top and a solid color panel with text is below; "statement" if it is mostly text on a solid background with little or no photo.';
+      const res=await fetch('https://superagent-f84b65ec.base44.app/functions/contentEngineAI',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({content:[{type:'image',source:{type:'base64',media_type:media,data:b64}},{type:'text',text:prompt}],max_tokens:1000})});
+      const data=await res.json();
+      const txt=(data.text||'').replace(/```json|```/g,'').trim();
+      const j=JSON.parse(txt);
+      let applied=[];
+      if(['quote','statement','spotlight','split'].includes(j.layout)){state.template=j.layout;applied.push(j.layout+' layout');}
+      if(typeof j.accent==='string'&&/^#?[0-9a-fA-F]{6}$/.test(j.accent.replace('#',''))){state.accent=j.accent.startsWith('#')?j.accent:'#'+j.accent;applied.push('color '+state.accent);}
+      syncUI();update();fit();
+      $('mstatus').textContent='Mirrored: '+(applied.join(' · ')||'closest match applied');$('mstatus').classList.add('ok');
+    }catch(err){
+      $('mstatus').textContent='AI match unavailable here — color was matched on upload. Pick the layout manually.';
+    }
+    btn.textContent=ot;btn.disabled=false;
+  });
+
+  function fit(){const box=$('stagebox');const a=box.clientWidth-48;const s=Math.min(a/1080,0.62);
+    $('scaler').style.transform='scale('+s+')';$('scaler').style.height=(1350*s)+'px';}
+  window.addEventListener('resize',fit);
+
+  async function renderCanvas(){const prev=$('scaler').style.transform;$('scaler').style.transform='scale(1)';$('scaler').style.height='1350px';
+    const canvas=await html2canvas(card,{scale:2,backgroundColor:null,useCORS:true,width:1080,height:1350});
+    $('scaler').style.transform=prev;fit();return canvas;}
+
+  $('download').addEventListener('click',async()=>{const b=$('download');const o=b.textContent;b.textContent='…';
+    try{const c=await renderCanvas();const a=document.createElement('a');a.download=kitName()+'-'+state.template+'.png';a.href=c.toDataURL('image/png');a.click();}catch(e){alert('Render error: '+e.message);}b.textContent=o;});
+
+  $('shareBtn').addEventListener('click',async()=>{const b=$('shareBtn');const o=b.textContent;b.textContent='…';
+    try{const c=await renderCanvas();
+      c.toBlob(async blob=>{
+        const file=new File([blob],kitName()+'-'+state.template+'.png',{type:'image/png'});
+        if(navigator.canShare&&navigator.canShare({files:[file]})){
+          try{await navigator.share({files:[file],title:'My branded graphic'});}catch(e){}
+        }else{const a=document.createElement('a');a.download=file.name;a.href=c.toDataURL('image/png');a.click();
+          alert('Share sheet not supported in this view — saved the image so you can post it to any platform.');}
+        b.textContent=o;
+      },'image/png');
+    }catch(e){alert('Render error: '+e.message);b.textContent=o;}});
+
+  $('reset').addEventListener('click',async()=>{try{await window.storage.delete(KEY,false);}catch(e){}location.reload();});
+
+  const PROMO_END = new Date('2026-07-31T23:59:59-04:00');
+  function isPromoActive(){ return new Date() <= PROMO_END; }
+
+  (async()=>{try{const r=await window.storage.get(KEY);if(r&&r.value)state=Object.assign(state,JSON.parse(r.value));}catch(e){}
+    try{
+      const qp=new URLSearchParams(location.search);
+      const qHeadline=qp.get('headline'),qSub=qp.get('sub');
+      if(qHeadline||qSub){
+        state.mode='single';
+        if(qHeadline)state.headline=qHeadline;
+        if(qSub)state.sub=qSub;
+        history.replaceState(null,'',location.pathname);
+      }
+    }catch(e){}
+    if(!Array.isArray(state.photos))state.photos=state.photo?[state.photo]:[];
+        if(!Array.isArray(state.kits)||!state.kits.length)state.kits=[{name:'Rose',accent:state.accent,p1:state.p1,p2:state.p2}];
+    if(state.activeKit>=state.kits.length||state.activeKit<0)state.activeKit=0;
+    if(!Array.isArray(state.slides)||!state.slides.length)state.slides=[{headline:state.headline,sub:state.sub}];
+    if(state.slideIndex>=state.slides.length||state.slideIndex<0)state.slideIndex=0;
+    if(isPromoActive())state.tier='paid';
+    syncUI();buildCard();renderStarterCats();renderStarters();renderTopics();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);setTimeout(fit,400);fit();})();
+
+  // ---- Listing Graphic Engine Pro: license & paywall ----
+  const BGE_API = 'https://superagent-f84b65ec.base44.app/functions';
+  function isProUnlocked(){ return isPromoActive() || localStorage.getItem('bge_pro_unlocked')==='1'; }
+  function markUnlocked(email,key){
+    localStorage.setItem('bge_pro_unlocked','1');
+    if(email)localStorage.setItem('bge_pro_email',email);
+    if(key)localStorage.setItem('bge_pro_key',key);
+  }
+  function openProModal(){
+    const saved=localStorage.getItem('bge_pro_email');
+    if(saved)$('unlockEmail').value=saved;
+    $('unlockErr').style.display='none';$('unlockOk').style.display='none';
+    $('proModal').style.display='flex';
+  }
+  function closeProModal(){$('proModal').style.display='none';}
+  document.addEventListener('DOMContentLoaded', function(){
+  $('closeProModal').addEventListener('click',closeProModal);
+  $('proModal').addEventListener('click',e=>{if(e.target.id==='proModal')closeProModal();});
+
+  $('buyProBtn').addEventListener('click',async()=>{
+    const email=$('unlockEmail').value.trim();
+    $('buyProBtn').textContent='Redirecting…';$('buyProBtn').disabled=true;
+    try{
+      const res=await fetch(BGE_API+'/createRealtorProCheckout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email||undefined})});
+      const data=await res.json();
+      if(data.url){location.href=data.url;}
+      else{$('unlockErr').textContent=data.error||'Something went wrong — try again.';$('unlockErr').style.display='block';$('buyProBtn').textContent='Get Pro — $47 one-time';$('buyProBtn').disabled=false;}
+    }catch(e){$('unlockErr').textContent='Network error — try again.';$('unlockErr').style.display='block';$('buyProBtn').textContent='Get Pro — $47 one-time';$('buyProBtn').disabled=false;}
+  });
+
+  $('submitUnlockBtn').addEventListener('click',async()=>{
+    const email=$('unlockEmail').value.trim();
+    const key=$('unlockKey').value.trim();
+    $('unlockErr').style.display='none';$('unlockOk').style.display='none';
+    if(!email||!key){$('unlockErr').textContent='Enter both your email and license key.';$('unlockErr').style.display='block';return;}
+    $('submitUnlockBtn').textContent='Checking…';$('submitUnlockBtn').disabled=true;
+    try{
+      const res=await fetch(BGE_API+'/verifyLicense',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,license_key:key})});
+      const data=await res.json();
+      if(data.valid){
+        markUnlocked(email,key);
+        $('unlockOk').textContent='✓ Unlocked! Closing…';$('unlockOk').style.display='block';
+        state.tier='paid';syncUI();update();
+        setTimeout(closeProModal,900);
+      }else{
+        $('unlockErr').textContent='That email + license key combo doesn\'t match. Double check and try again.';$('unlockErr').style.display='block';
+      }
+    }catch(e){$('unlockErr').textContent='Network error — try again.';$('unlockErr').style.display='block';}
+    $('submitUnlockBtn').textContent='Unlock with license key';$('submitUnlockBtn').disabled=false;
+  });
+
+  // Handle return from Stripe checkout: fetch the license immediately, no waiting
+  (async()=>{
+    const params=new URLSearchParams(location.search);
+    if(params.get('purchase')==='success'&&params.get('session_id')){
+      try{
+        const res=await fetch(BGE_API+'/getLicenseForRealtorSession',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:params.get('session_id')})});
+        const data=await res.json();
+        if(data.license_key){
+          markUnlocked(data.email,data.license_key);
+          state.tier='paid';syncUI();update();
+          openProModal();
+          $('unlockEmail').value=data.email||'';
+          $('unlockKey').value=data.license_key;
+          $('unlockOk').textContent='🎉 Payment confirmed! Your license key: '+data.license_key+' (saved — you\'re unlocked on this device).';
+          $('unlockOk').style.display='block';
+        }
+      }catch(e){}
+      history.replaceState({},'',location.pathname);
+    } else if(isProUnlocked()){
+      state.tier='paid';
+    }
+  })();
+
+  });
+</script>
+
+<div id="proModal" style="display:none;position:fixed;inset:0;background:rgba(6,10,20,.72);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#0F1B33;border:1px solid #1d2b4a;border-radius:16px;max-width:420px;width:92%;padding:26px 24px;font-family:inherit;color:#eaf0ff;">
+    <h2 style="margin:0 0 6px;font-size:20px;">Unlock Listing Graphic Engine Pro</h2>
+    <p style="margin:0 0 18px;color:#9fb0d0;font-size:13.5px;line-height:1.5;">Remove the watermark, unlock AI carousels & fresh post ideas — one-time payment, yours forever.</p>
+
+    <button id="buyProBtn" style="width:100%;padding:13px;border-radius:10px;border:none;background:#C9A24B;color:#0F1B33;font-weight:700;font-size:15px;cursor:pointer;margin-bottom:14px;">Get Pro — $47 one-time</button>
+
+    <div style="text-align:center;color:#5c6b8a;font-size:12px;margin:10px 0;">— already purchased? —</div>
+
+    <input id="unlockEmail" type="email" placeholder="Email used at checkout" style="width:100%;box-sizing:border-box;padding:11px 12px;border-radius:9px;border:1px solid #1d2b4a;background:#0A1430;color:#eaf0ff;font-family:inherit;font-size:14px;margin-bottom:8px;" />
+    <input id="unlockKey" type="text" placeholder="License key (RGE-XXXX-XXXX-XXXX)" style="width:100%;box-sizing:border-box;padding:11px 12px;border-radius:9px;border:1px solid #1d2b4a;background:#0A1430;color:#eaf0ff;font-family:inherit;font-size:14px;margin-bottom:10px;text-transform:uppercase;" />
+    <button id="submitUnlockBtn" style="width:100%;padding:11px;border-radius:9px;border:1px solid #C9A24B;background:transparent;color:#C9A24B;font-weight:600;font-size:14px;cursor:pointer;">Unlock with license key</button>
+    <div id="unlockErr" style="color:#ff6b6b;font-size:12.5px;margin-top:10px;display:none;"></div>
+    <div id="unlockOk" style="color:#7CD992;font-size:12.5px;margin-top:10px;display:none;"></div>
+
+    <button id="closeProModal" style="width:100%;background:none;border:none;color:#5c6b8a;font-size:13px;margin-top:16px;cursor:pointer;">Maybe later</button>
+  </div>
+</div>
+</body>
+</html>
