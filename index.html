@@ -346,6 +346,12 @@
       <div class="scaler" id="scaler"><div class="card t-quote" id="card"></div></div>
     </div>
   </div>
+
+  <div style="margin-top:28px;padding:18px 16px;background:#0F1B33;border:1px solid #1d2b4a;border-radius:14px;text-align:center;">
+    <div style="color:#F7C948;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">Support the creator</div>
+    <div style="color:#9fb0d4;font-size:13px;margin-bottom:12px;line-height:1.5;">Pro is free for everyone right now — but if this tool's earning its keep, you can still grab the $47 Pro license and back the work that built it.</div>
+    <button id="footerBuyBtn" style="background:#0057FF;color:#fff;border:none;padding:12px 22px;border-radius:999px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">Buy AI Realtor Agency — $47</button>
+  </div>
 </div>
 
 <script>
@@ -737,6 +743,8 @@ Reply with ONLY raw JSON: an array of objects each with keys "headline" and "sub
   function closeProModal(){$('proModal').style.display='none';}
   document.addEventListener('DOMContentLoaded', function(){
   $('closeProModal').addEventListener('click',closeProModal);
+  const footerBuyBtn=document.getElementById('footerBuyBtn');
+  if(footerBuyBtn)footerBuyBtn.addEventListener('click',openProModal);
   $('proModal').addEventListener('click',e=>{if(e.target.id==='proModal')closeProModal();});
 
   $('buyProBtn').addEventListener('click',async()=>{
