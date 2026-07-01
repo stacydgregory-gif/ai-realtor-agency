@@ -690,7 +690,9 @@ Reply with ONLY raw JSON: an array of objects each with keys "headline" and "sub
   window.addEventListener('resize',fit);
 
   async function renderCanvas(){const prev=$('scaler').style.transform;$('scaler').style.transform='scale(1)';$('scaler').style.height='1350px';
-    const canvas=await html2canvas(card,{scale:2,backgroundColor:null,useCORS:true,width:1080,height:1350});
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;}catch(e){}
+    const canvas=await html2canvas(card,{scale:2,backgroundColor:null,useCORS:true,width:1080,height:1350,logging:false});
     $('scaler').style.transform=prev;fit();return canvas;}
 
   $('download').addEventListener('click',async()=>{const b=$('download');const o=b.textContent;b.textContent='…';
@@ -700,10 +702,20 @@ Reply with ONLY raw JSON: an array of objects each with keys "headline" and "sub
     try{const c=await renderCanvas();
       c.toBlob(async blob=>{
         const file=new File([blob],kitName()+'-'+state.template+'.png',{type:'image/png'});
+        let shared=false;
         if(navigator.canShare&&navigator.canShare({files:[file]})){
-          try{await navigator.share({files:[file],title:'My branded graphic'});}catch(e){}
-        }else{const a=document.createElement('a');a.download=file.name;a.href=c.toDataURL('image/png');a.click();
-          alert('Share sheet not supported in this view — saved the image so you can post it to any platform.');}
+          try{await navigator.share({files:[file],title:'My branded graphic'});shared=true;}catch(e){shared=(e&&e.name==='AbortError');}
+        }
+        if(!shared){
+          try{
+            const dataUrl=c.toDataURL('image/png');
+            const fname=(kitName()+'-'+state.template+'.png').replace(/[^a-zA-Z0-9._-]/g,'_');
+            const res=await fetch('https://superagent-f84b65ec.base44.app/functions/uploadDesignImage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image_base64:dataUrl,filename:fname})});
+            const data=await res.json();
+            if(data.url){$('saveLinkUrl').value=data.url;$('saveLinkResult').style.display='block';$('saveLinkResult').scrollIntoView({behavior:'smooth',block:'nearest'});}
+            else{const a=document.createElement('a');a.download=file.name;a.href=dataUrl;a.click();}
+          }catch(e2){const a=document.createElement('a');a.download=file.name;a.href=c.toDataURL('image/png');a.click();}
+        }
         b.textContent=o;
       },'image/png');
     }catch(e){alert('Render error: '+e.message);b.textContent=o;}});
@@ -730,7 +742,7 @@ Reply with ONLY raw JSON: an array of objects each with keys "headline" and "sub
     catch(e){document.execCommand('copy');}
   });
 
-  $('reset').addEventListener('click('click',async()=>{try{await window.storage.delete(KEY,false);}catch(e){}location.reload();});
+  $('reset').addEventListener('click',async()=>{try{await window.storage.delete(KEY,false);}catch(e){}location.reload();});
 
   const PROMO_END = new Date('2026-07-31T23:59:59-04:00');
   function isPromoActive(){ return new Date() <= PROMO_END; }
