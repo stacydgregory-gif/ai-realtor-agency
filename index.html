@@ -712,13 +712,25 @@ Reply with ONLY raw JSON: an array of objects each with keys "headline" and "sub
             const fname=(kitName()+'-'+state.template+'.png').replace(/[^a-zA-Z0-9._-]/g,'_');
             const res=await fetch('https://superagent-f84b65ec.base44.app/functions/uploadDesignImage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image_base64:dataUrl,filename:fname})});
             const data=await res.json();
-            if(data.url){$('saveLinkUrl').value=data.url;$('saveLinkResult').style.display='block';$('saveLinkResult').scrollIntoView({behavior:'smooth',block:'nearest'});}
+            if(data.url){
+              b.textContent='Finalizing…';
+              await waitUntilLive(data.url,15);
+              $('saveLinkUrl').value=data.url;$('saveLinkResult').style.display='block';$('saveLinkResult').scrollIntoView({behavior:'smooth',block:'nearest'});
+            }
             else{const a=document.createElement('a');a.download=file.name;a.href=dataUrl;a.click();}
           }catch(e2){const a=document.createElement('a');a.download=file.name;a.href=c.toDataURL('image/png');a.click();}
         }
         b.textContent=o;
       },'image/png');
     }catch(e){alert('Render error: '+e.message);b.textContent=o;}});
+
+  async function waitUntilLive(url,maxTries){
+    for(let i=0;i<maxTries;i++){
+      try{const r=await fetch(url,{method:'GET',cache:'no-store'});if(r.ok)return true;}catch(e){}
+      await new Promise(r=>setTimeout(r,1200));
+    }
+    return false;
+  }
 
   $('saveLinkBtn').addEventListener('click',async()=>{
     const b=$('saveLinkBtn');const o=b.textContent;b.textContent='Saving…';b.disabled=true;
@@ -729,6 +741,8 @@ Reply with ONLY raw JSON: an array of objects each with keys "headline" and "sub
       const res=await fetch('https://superagent-f84b65ec.base44.app/functions/uploadDesignImage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image_base64:dataUrl,filename:fname})});
       const data=await res.json();
       if(data.url){
+        b.textContent='Finalizing…';
+        await waitUntilLive(data.url,15);
         $('saveLinkUrl').value=data.url;
         $('saveLinkResult').style.display='block';
       }else{ alert('Could not save — try again.'); }
