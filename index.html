@@ -63,6 +63,10 @@
   .actions{display:flex;gap:8px;margin-top:10px}
   .dl{flex:1;background:linear-gradient(135deg,var(--gold),#ffd76b);color:#0B1226;border:none;border-radius:12px;padding:14px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit}
   .share{flex:1;background:linear-gradient(135deg,var(--accent),#3D8BFF);color:#fff;border:none;border-radius:12px;padding:14px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit}
+  .dl-primary{width:100%;background:linear-gradient(135deg,var(--gold),#ffd76b);color:#0B1226;border:none;border-radius:12px;padding:16px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit;margin-bottom:8px}
+  .actions-secondary{display:flex;gap:8px}
+  .ghost-btn{flex:1;background:transparent;border:1px solid #2a3a5c;color:#9fb0d4;border-radius:10px;padding:10px;font-weight:600;font-size:12px;cursor:pointer;font-family:inherit}
+  .primary-hint{font-size:11px;color:#7d8db8;text-align:center;margin:-4px 0 10px}
   .dl:active,.share:active{transform:translateY(1px)}
   .subrow{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
   .saved{font-size:11px;color:#7a7385}.saved.on{color:#5bbf7a}
@@ -333,13 +337,16 @@
 
       </div>
 
-      <div class="actions">
-        <button class="dl" id="download">⬇ Download</button>
-        <button class="share" id="shareBtn">⤴ Share</button>
-        <button class="dl" id="saveLinkBtn">🔗 Save &amp; get link</button>
+      <div class="actions" style="display:block">
+        <button class="dl-primary" id="download">⬇ Download image</button>
+        <div class="primary-hint">Recommended — upload this file directly when posting to Facebook/Instagram</div>
+        <div class="actions-secondary">
+          <button class="ghost-btn" id="shareBtn">⤴ Share</button>
+          <button class="ghost-btn" id="saveLinkBtn">🔗 Get link</button>
+        </div>
       </div>
       <div id="saveLinkResult" style="display:none;margin-top:8px;padding:10px 12px;background:#0F1B33;border:1px solid #1d2b4a;border-radius:10px;">
-        <div style="font-size:12px;color:#9fb0d4;margin-bottom:6px;">Saved! Copy this link to share anywhere — no download needed:</div>
+        <div style="font-size:12px;color:#9fb0d4;margin-bottom:6px;">Saved! This link works for texting/emailing the design. Note: pasting a link (not a file) into Facebook may show "media.base44.com" underneath it — for a clean FB/IG post, use Download instead and upload the file directly.</div>
         <div style="display:flex;gap:6px;">
           <input type="text" id="saveLinkUrl" readonly style="flex:1;min-width:0;padding:8px 10px;border-radius:8px;border:1px solid #1d2b4a;background:#0A1430;color:#eaf0ff;font-size:12px;">
           <button id="copyLinkBtn" style="background:#0057FF;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;">Copy</button>
