@@ -338,6 +338,14 @@
       <div class="actions">
         <button class="dl" id="download">⬇ Download</button>
         <button class="share" id="shareBtn">⤴ Share</button>
+        <button class="dl" id="saveLinkBtn">🔗 Save &amp; get link</button>
+      </div>
+      <div id="saveLinkResult" style="display:none;margin-top:8px;padding:10px 12px;background:#0F1B33;border:1px solid #1d2b4a;border-radius:10px;">
+        <div style="font-size:12px;color:#9fb0d4;margin-bottom:6px;">Saved! Copy this link to share anywhere — no download needed:</div>
+        <div style="display:flex;gap:6px;">
+          <input type="text" id="saveLinkUrl" readonly style="flex:1;min-width:0;padding:8px 10px;border-radius:8px;border:1px solid #1d2b4a;background:#0A1430;color:#eaf0ff;font-size:12px;">
+          <button id="copyLinkBtn" style="background:#0057FF;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;">Copy</button>
+        </div>
       </div>
       <div class="subrow"><span class="saved" id="saved">Auto-saves your work — keep building</span><button class="reset" id="reset">Reset</button></div>
     </div>
@@ -702,7 +710,29 @@ Reply with ONLY raw JSON: an array of objects each with keys "headline" and "sub
       },'image/png');
     }catch(e){alert('Render error: '+e.message);b.textContent=o;}});
 
-  $('reset').addEventListener('click',async()=>{try{await window.storage.delete(KEY,false);}catch(e){}location.reload();});
+  $('saveLinkBtn').addEventListener('click',async()=>{
+    const b=$('saveLinkBtn');const o=b.textContent;b.textContent='Saving…';b.disabled=true;
+    try{
+      const c=await renderCanvas();
+      const dataUrl=c.toDataURL('image/png');
+      const fname=(kitName()+'-'+state.template+'.png').replace(/[^a-zA-Z0-9._-]/g,'_');
+      const res=await fetch('https://superagent-f84b65ec.base44.app/functions/uploadDesignImage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image_base64:dataUrl,filename:fname})});
+      const data=await res.json();
+      if(data.url){
+        $('saveLinkUrl').value=data.url;
+        $('saveLinkResult').style.display='block';
+      }else{ alert('Could not save — try again.'); }
+    }catch(e){ alert('Save error: '+e.message); }
+    b.textContent=o;b.disabled=false;
+  });
+
+  $('copyLinkBtn').addEventListener('click',()=>{
+    const el=$('saveLinkUrl'); el.select(); el.setSelectionRange(0,99999);
+    try{navigator.clipboard.writeText(el.value); $('copyLinkBtn').textContent='Copied!'; setTimeout(()=>{$('copyLinkBtn').textContent='Copy';},1500);}
+    catch(e){document.execCommand('copy');}
+  });
+
+  $('reset').addEventListener('click('click',async()=>{try{await window.storage.delete(KEY,false);}catch(e){}location.reload();});
 
   const PROMO_END = new Date('2026-07-31T23:59:59-04:00');
   function isPromoActive(){ return new Date() <= PROMO_END; }
