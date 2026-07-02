@@ -458,9 +458,10 @@
   function renderKits(){renderChips();fillKitEditor();}
 
   const plain=s=>s.replace(/\*/g,'');
-  function loadPost(p){state.mode='single';state.headline=p.headline;state.sub=p.sub;if(p.tpl)state.template=p.tpl;syncUI();update();fit();}
+  const STORY_CATS=['Home Tips','Myth vs Fact','Checklist','Stat Callout'];
+  function loadPost(p,catName){state.mode='single';state.headline=p.headline;state.sub=p.sub;if(p.tpl)state.template=p.tpl;state.shape=STORY_CATS.includes(catName)?'story':'feed';syncUI();update();fit();}
   function renderStarterCats(){const c=$('starterCats');if(!c)return;c.innerHTML='';STARTER_CATS.forEach((cat,i)=>{const b=document.createElement('button');b.className='pick'+(i===state.starterCat?' active':'');b.style.cssText='flex:0 0 auto;padding:9px 14px';b.textContent=cat.name;b.addEventListener('click',()=>{state.starterCat=i;renderStarterCats();renderStarters();save();});c.appendChild(b);});}
-  function renderStarters(){const c=$('starterList');if(!c)return;c.innerHTML='';const cat=STARTER_CATS[state.starterCat]||STARTER_CATS[0];cat.posts.forEach(p=>{const b=document.createElement('button');b.className='starter';b.textContent=plain(p.headline);b.addEventListener('click',()=>loadPost(p));c.appendChild(b);});}
+  function renderStarters(){const c=$('starterList');if(!c)return;c.innerHTML='';const cat=STARTER_CATS[state.starterCat]||STARTER_CATS[0];cat.posts.forEach(p=>{const b=document.createElement('button');b.className='starter';b.textContent=plain(p.headline);b.addEventListener('click',()=>loadPost(p,cat.name));c.appendChild(b);});}
   function renderTopics(){const c=$('topicChips');if(!c)return;c.innerHTML='';TOPICS.forEach(t=>{const b=document.createElement('button');b.className='tchip';b.textContent=t;b.addEventListener('click',()=>{$('carTopic').value=t;});c.appendChild(b);});}
 
   function buildCard(){
