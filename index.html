@@ -85,6 +85,7 @@
   .card .logo-br{bottom:130px;right:86px}
   .card .logo-bg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:72%;max-height:66%;object-fit:contain;opacity:var(--logoBgOp,.18);z-index:0}
   .card .shade{position:absolute;inset:0;background:#0a0807;opacity:var(--shade,0)}
+  .card .tint{position:absolute;inset:0;background:linear-gradient(160deg,var(--p1,#16264F),var(--p2,#0A1733));opacity:var(--tint,0);mix-blend-mode:multiply}
   .card em{font-style:italic;color:var(--accent)}
   .card .tag{position:absolute;right:52px;bottom:46px;font-family:'DM Sans',sans-serif;font-size:18px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:600}
   .card .tag::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:8px;vertical-align:middle}
@@ -261,6 +262,7 @@
       <div class="pro-only">
       <h2 class="mt">Photo shadow</h2>
       <div class="field"><label>Darken photo for readability</label><input type="range" id="photoShade" min="0" max="60" value="0" style="width:100%"></div>
+      <div class="field"><label>Brand color tint on photo</label><input type="range" id="colorTint" min="0" max="70" value="0" style="width:100%"></div>
 
       <h2 class="mt">Logo</h2>
       <div class="field">
@@ -437,7 +439,7 @@
   const photoHTML=()=>state.photo?`<img class="ph" src="${state.photo}">`:`<div class="ph-empty">Upload a photo →</div>`;
   const bgHTML=()=>{
     if(state.bg==='logo'&&state.logo)return `<img class="logo-bg" src="${state.logo}">`;
-    if(state.bg==='photo')return state.photo?`<img class="ph" src="${state.photo}"><div class="shade"></div>`:`<div class="ph-empty">Upload a photo →</div>`;
+    if(state.bg==='photo')return state.photo?`<img class="ph" src="${state.photo}"><div class="shade"></div><div class="tint"></div>`:`<div class="ph-empty">Upload a photo →</div>`;
     return '';
   };
   const badgeHTML=()=>(!state.logo||state.bg==='logo')?'':`<img class="logo logo-${state.logoPos}" src="${state.logo}">`;
@@ -471,6 +473,7 @@
     card.style.setProperty('--logoH',(state.logoSize||130)+'px');
     card.style.setProperty('--logoBgOp',state.logoBg==='bold'?'0.92':'0.18');
     card.style.setProperty('--shade',((state.shade||0)/100));
+    card.style.setProperty('--tint',((state.tint||0)/100));
     card.style.setProperty('--textpos',{top:'flex-start',middle:'center',bottom:'flex-end'}[state.textPos]||'flex-end');
     const tag=state.tier==='free'?'<div class="tag">Made with The AI Realtor Agency™</div>':'';
     let dots='';
@@ -500,7 +503,7 @@
     document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===state.mode));
     $('carouselBox').style.display=state.mode==='carousel'?'block':'none';
     $('slideCount').textContent=(state.slideIndex+1)+' / '+state.slides.length;
-    $('photoShade').value=state.shade||0;
+    $('photoShade').value=state.shade||0;$('colorTint').value=state.tint||0;
   }
   let saveT;
   async function save(){try{await window.storage.set(KEY,JSON.stringify(state),false);
@@ -587,6 +590,7 @@
   $('removeSlide').addEventListener('click',()=>{if(state.slides.length<=1)return;state.slides.splice(state.slideIndex,1);state.slideIndex=Math.min(state.slideIndex,state.slides.length-1);syncUI();update();});
   $('downloadAll').addEventListener('click',downloadAll);
   $('photoShade').addEventListener('input',e=>{state.shade=+e.target.value;update();});
+  $('colorTint').addEventListener('input',e=>{state.tint=+e.target.value;update();save();});
   $('genPosts').addEventListener('click',generatePosts);
   async function generatePosts(){
     const cat=STARTER_CATS[state.starterCat]||STARTER_CATS[0];
