@@ -75,6 +75,7 @@
   .scaler{transform-origin:top center}
 
   .card{width:1080px;height:1350px;position:relative;overflow:hidden;color:#fff;background:linear-gradient(160deg,var(--p1,#16264F),var(--p2,#0A1733))}
+  .card.shape-story{height:1920px}
   .card .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:72% center}
   .card .ph-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#6a6370;font-size:22px}
   .card .logo{position:absolute;max-height:var(--logoH,130px);max-width:520px;object-fit:contain;z-index:3}
@@ -110,11 +111,11 @@
   .t-spotlight .tick{width:60px;height:3px;background:var(--accent);margin-bottom:24px}
   .t-spotlight .sub{font-size:25px;line-height:1.5;color:#e7e2e8;max-width:560px;margin-bottom:18px}
   .t-spotlight .hl{font-family:'Playfair Display',serif;font-weight:700;font-size:60px;line-height:1.12;margin-bottom:26px}
-  .t-split .ph{height:752px;top:0;inset:auto}
-  .t-split .ph-empty{height:752px;top:0;bottom:auto}
-  .t-split .pnl{position:absolute;left:0;right:0;top:752px;bottom:0;background:linear-gradient(160deg,var(--p1,#16264F),var(--p2,#0A1733))}
-  .t-split .divide{position:absolute;left:0;right:0;top:752px;height:5px;background:var(--accent)}
-  .t-split .inner{position:absolute;left:88px;right:88px;top:806px;bottom:80px;display:flex;flex-direction:column;justify-content:center}
+  .t-split .ph{height:55.7%;top:0;inset:auto}
+  .t-split .ph-empty{height:55.7%;top:0;bottom:auto}
+  .t-split .pnl{position:absolute;left:0;right:0;top:55.7%;bottom:0;background:linear-gradient(160deg,var(--p1,#16264F),var(--p2,#0A1733))}
+  .t-split .divide{position:absolute;left:0;right:0;top:55.7%;height:5px;background:var(--accent)}
+  .t-split .inner{position:absolute;left:88px;right:88px;top:59.7%;bottom:80px;display:flex;flex-direction:column;justify-content:center}
   .t-split .hl{font-family:'Playfair Display',serif;font-weight:700;font-size:52px;line-height:1.1}
   .t-split .hrule{width:100px;height:3px;background:var(--accent);border-radius:2px;margin:20px 0 18px}
   .t-split .sub{font-size:25px;line-height:1.5;color:#d9dceb;max-width:600px}
@@ -237,6 +238,12 @@
         <button class="pick" data-tpl="myth">Myth vs Fact</button>
         <button class="pick" data-tpl="checklist">Checklist</button>
         <button class="pick" data-tpl="stat">Stat callout</button>
+      </div>
+
+      <h2 class="mt">Post shape</h2>
+      <div class="btnrow">
+        <button class="pick" data-shape="feed">Feed / Square</button>
+        <button class="pick" data-shape="story">Story / Reel / TikTok</button>
       </div>
 
       <h2 class="mt">Text position</h2>
@@ -368,7 +375,7 @@
 <script>
   const $=id=>document.getElementById(id);
   const card=$('card');
-  let state={template:'quote',accent:'#C9A24B',p1:'#16264F',p2:'#0A1733',photo:'',logo:'',logoSize:130,bg:'photo',logoPos:'tl',logoBg:'soft',shade:0,tint:20,tier:'free',uiMode:'simple',starterCat:0,textPos:'bottom',fontStyle:'modern',
+  let state={template:'quote',accent:'#C9A24B',p1:'#16264F',p2:'#0A1733',photo:'',logo:'',logoSize:130,bg:'photo',shape:'feed',logoPos:'tl',logoBg:'soft',shade:0,tint:20,tier:'free',uiMode:'simple',starterCat:0,textPos:'bottom',fontStyle:'modern',
     mode:'single',slideIndex:0,
     name:'Your Name Here',role:'Your Title Here',
     headline:'Your *experience* is the edge no one can copy.',
@@ -467,7 +474,7 @@
     else if(state.template==='checklist'){ const items=(ch.sub||'').split('\n').filter(l=>l.trim()).map(l=>`<div class="cl-item"><span class="cl-check">✓</span><span class="cl-text">${fmtLine(l)}</span></div>`).join(''); h=`${bgHTML()}<div class="scrim-c"></div><div class="cl-wrap"><div class="cl-hl">${H}</div><div class="cl-hrule"></div><div class="cl-list">${items}</div>${sigHTML()}</div>`; }
     else if(state.template==='stat'){ h=`${bgHTML()}<div class="scrim-st"></div><div class="stat-wrap"><div class="stat-num">${H}</div><div class="stat-hrule"></div><div class="stat-sub">${S}</div>${sigHTML()}</div>`; }
     else { h=`${bgHTML()}<div class="pnl"></div><div class="divide"></div><div class="inner"><div class="hl">${H}</div><div class="hrule"></div><div class="sub">${S}</div>${sigHTML()}</div>`; }
-    card.className='card t-'+state.template+' fs-'+(state.fontStyle||'classic');
+    card.className='card t-'+state.template+' fs-'+(state.fontStyle||'classic')+' shape-'+(state.shape||'feed');
     card.style.setProperty('--accent',state.accent);
     card.style.setProperty('--p1',state.p1);card.style.setProperty('--p2',state.p2);
     card.style.setProperty('--logoH',(state.logoSize||130)+'px');
@@ -498,6 +505,7 @@
     if(state.logo)$('logoLabel').textContent='✓ Logo set — tap to change';
     $('logoSize').value=state.logoSize||130;
     document.querySelectorAll('[data-bg]').forEach(b=>b.classList.toggle('active',b.dataset.bg===state.bg));
+    document.querySelectorAll('[data-shape]').forEach(b=>b.classList.toggle('active',b.dataset.shape===(state.shape||'feed')));
     document.querySelectorAll('[data-pos]').forEach(b=>b.classList.toggle('active',b.dataset.pos===state.logoPos));
     document.querySelectorAll('[data-logobg]').forEach(b=>b.classList.toggle('active',b.dataset.logobg===state.logoBg));
     document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===state.mode));
@@ -579,6 +587,7 @@
   $('logoLabel').addEventListener('click',()=>$('logoFile').click());
   $('logoSize').addEventListener('input',e=>{state.logoSize=+e.target.value;update();});
   document.querySelectorAll('[data-bg]').forEach(b=>b.addEventListener('click',()=>{state.bg=b.dataset.bg;syncUI();update();}));
+  document.querySelectorAll('[data-shape]').forEach(b=>b.addEventListener('click',()=>{state.shape=b.dataset.shape;syncUI();update();fit();save();}));
   document.querySelectorAll('[data-pos]').forEach(b=>b.addEventListener('click',()=>{state.logoPos=b.dataset.pos;syncUI();update();}));
   document.querySelectorAll('[data-logobg]').forEach(b=>b.addEventListener('click',()=>{state.logoBg=b.dataset.logobg;syncUI();update();}));
   document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{
@@ -692,14 +701,15 @@ Reply with ONLY raw JSON: an array of objects each with keys "headline" and "sub
     btn.textContent=ot;btn.disabled=false;
   });
 
-  function fit(){const box=$('stagebox');const a=box.clientWidth-48;const s=Math.min(a/1080,0.62);
-    $('scaler').style.transform='scale('+s+')';$('scaler').style.height=(1350*s)+'px';}
+  function cardH(){return state.shape==='story'?1920:1350;}
+  function fit(){const box=$('stagebox');const a=box.clientWidth-48;const h=cardH();const s=Math.min(a/1080,0.62);
+    $('scaler').style.transform='scale('+s+')';$('scaler').style.height=(h*s)+'px';}
   window.addEventListener('resize',fit);
 
-  async function renderCanvas(){const prev=$('scaler').style.transform;$('scaler').style.transform='scale(1)';$('scaler').style.height='1350px';
+  async function renderCanvas(){const prev=$('scaler').style.transform;const _h=cardH();$('scaler').style.transform='scale(1)';$('scaler').style.height=_h+'px';
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
     try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;}catch(e){}
-    const canvas=await html2canvas(card,{scale:2,backgroundColor:null,useCORS:true,width:1080,height:1350,logging:false});
+    const canvas=await html2canvas(card,{scale:2,backgroundColor:null,useCORS:true,width:1080,height:_h,logging:false});
     $('scaler').style.transform=prev;fit();return canvas;}
 
   $('download').addEventListener('click',async()=>{const b=$('download');const o=b.textContent;b.textContent='…';
