@@ -742,11 +742,12 @@ Reply with ONLY raw JSON: an array of objects each with keys "headline" and "sub
   (async()=>{try{const r=await window.storage.get(KEY);if(r&&r.value)state=Object.assign(state,JSON.parse(r.value));}catch(e){}
     try{
       const qp=new URLSearchParams(location.search);
-      const qHeadline=qp.get('headline'),qSub=qp.get('sub');
-      if(qHeadline||qSub){
+      const qHeadline=qp.get('headline'),qSub=qp.get('sub'),qShape=qp.get('shape');
+      if(qHeadline||qSub||qShape){
         state.mode='single';
         if(qHeadline)state.headline=qHeadline;
         if(qSub)state.sub=qSub;
+        if(qShape==='story'||qShape==='feed')state.shape=qShape;
         history.replaceState(null,'',location.pathname);
       }
     }catch(e){}
